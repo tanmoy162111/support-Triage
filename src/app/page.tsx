@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { connection } from 'next/server';
 import { getDeps } from '@/server/deps';
-import { getTicketDetail, listTickets, PAGE_SIZE } from '@/services/queries';
+import { getTicketDetail, isUuid, listTickets, PAGE_SIZE } from '@/services/queries';
 import { TICKET_STATUSES, type TicketStatus } from '@/domain/types';
 import { StatusChip } from '@/components/StatusChip';
 import { LoadSamplesButton } from '@/components/LoadSamplesButton';
@@ -37,7 +37,7 @@ async function Inbox({ searchParams }: { searchParams: SearchParams }) {
   const status = (TICKET_STATUSES as readonly string[]).includes(sp.status ?? '') ? (sp.status as TicketStatus) : undefined;
   const page = Math.max(0, Math.floor(Number(sp.page ?? 0)) || 0);
   const items = await listTickets(deps, { status, page });
-  const detail = sp.ticket ? await getTicketDetail(deps, sp.ticket) : null;
+  const detail = sp.ticket && isUuid(sp.ticket) ? await getTicketDetail(deps, sp.ticket) : null;
   const statusQ = status ? `&status=${status}` : '';
 
   return (
@@ -60,7 +60,7 @@ async function Inbox({ searchParams }: { searchParams: SearchParams }) {
             <ul>
               {items.map((t) => (
                 <li key={t.id} className={`border-b border-stone-200 ${sp.ticket === t.id ? 'bg-sky-100 border-l-4 border-l-accent' : ''}`}>
-                  <Link href={`/?ticket=${t.id}${statusQ}${page ? `&page=${page}` : ''}`} aria-current={sp.ticket === t.id ? 'true' : undefined} className="grid gap-1 p-3 hover:bg-stone-50">
+                  <Link href={`/?ticket=${t.id}${statusQ}${page ? `&page=${page}` : ''}`} aria-current={detail?.ticket.id === t.id ? 'true' : undefined} className="grid gap-1 p-3 hover:bg-stone-50">
                     <span className="flex items-center justify-between gap-2"><span className="truncate font-medium">{t.subject}</span><StatusChip status={t.status} /></span>
                     <span className="flex flex-wrap gap-x-2 text-xs text-stone-700">
                       <span className="break-all">{t.fromEmail}</span>{t.topic && <span>{t.topic}</span>}{t.urgency && <span>urgency: {t.urgency}</span>}
@@ -87,7 +87,7 @@ async function Inbox({ searchParams }: { searchParams: SearchParams }) {
               <h2 id="ticket-h" className={H}>{detail.ticket.subject}</h2>
               <p className="flex flex-wrap items-center gap-x-2 text-sm text-stone-700"><span>From {detail.ticket.fromEmail}</span><span aria-hidden="true">·</span><time dateTime={detail.ticket.receivedAt.toISOString()}>{detail.ticket.receivedAt.toISOString()}</time><StatusChip status={detail.ticket.status} /></p>
               {detail.ticket.status === 'failed' && <p role="alert" className="rounded border border-red-400 bg-red-100 p-2 text-sm text-red-950">Processing failed: {detail.ticket.failureReason}</p>}
-              {detail.ticket.injectionSuspected && <p role="alert" className="rounded border border-amber-500 bg-amber-100 p-2 text-sm text-amber-950">Warning: this email contains text that looks like instructions to the assistant. It was treated as data and ignored.</p>}
+              {detail.ticket.injectionSuspected && <p role="alert" className="rounded border border-amber-500 bg-amber-100 p-2 text-sm text-amber-950">Warning: this email contains text that looks like instructions to an assistant. It was handled as data, but check the draft carefully before sending.</p>}
               {detail.ticket.needsHuman && <p className="rounded border border-amber-400 bg-amber-50 p-2 text-sm text-amber-950">Needs human handling: {detail.ticket.needsHumanReasons.join(', ')}</p>}
               <pre className="whitespace-pre-wrap break-words rounded bg-stone-50 p-3 font-sans text-sm">{detail.ticket.body}</pre>
               <div className="text-sm">

@@ -31,6 +31,11 @@ describe('queries', () => {
     expect(d?.draft).toBeTruthy();
     expect(Array.isArray(d?.citations)).toBe(true);
   });
+  it('returns null for a non-uuid id instead of throwing', async () => {
+    expect(await getTicketDetail(deps(), 'not-a-uuid')).toBeNull();
+    expect(await getTicketDetail(deps(), "1' or '1'='1")).toBeNull();
+    expect(await getTicketDetail(deps(), '')).toBeNull();
+  });
   it('returns null for another tenant\'s ticket', async () => {
     await loadSamples(deps());
     const [first] = await listTickets(deps(), {});

@@ -33,8 +33,11 @@ export async function listTickets(deps: Pick<Deps, 'db' | 'tenantId'>, opts: { s
   return rows.map((r) => ({ ...r, topic: r.topic ?? null, urgency: (r.urgency ?? null) as Urgency | null }));
 }
 
+export const isUuid = (v: string): boolean => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
 export async function getTicketDetail(deps: Pick<Deps, 'db' | 'tenantId'>, ticketId: string) {
   const { db, tenantId } = deps;
+  if (!isUuid(ticketId)) return null; // a malformed id would make Postgres throw; treat it as not found
   const [ticket] = await db.select().from(tickets).where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId)));
   if (!ticket) return null;
   const [classification] = await db.select().from(classifications).where(and(eq(classifications.ticketId, ticketId), eq(classifications.tenantId, tenantId))).orderBy(desc(classifications.createdAt)).limit(1);

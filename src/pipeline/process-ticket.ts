@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { tickets, classifications, drafts } from '@/db/schema';
-import { assertTransition } from '@/domain/state-machine';
+import { assertTransition, canTransition } from '@/domain/state-machine';
 import { InvalidTransitionError } from '@/domain/errors';
 import { routeForHuman } from '@/domain/routing';
 import { detectInjection } from '@/domain/injection';
@@ -91,8 +91,12 @@ export async function processTicket(deps: Deps, ticketId: string): Promise<void>
   } catch (err) {
     const reason = (err instanceof StepError ? err.message : `pipeline failed (${(err as Error)?.name || 'Error'})`).slice(0, 300);
     const [current] = await db.select({ status: tickets.status }).from(tickets).where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId)));
-    if (current && current.status !== 'failed') {
-      await db.update(tickets).set({ status: 'failed', failureReason: reason }).where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId)));
+    // Only fail a ticket the state machine allows to fail. A ticket that already reached awaiting_review (e.g. the
+    // final audit write failed) keeps its status so it is not wrongly marked failed after a valid draft exists.
+    if (current && canTransition(current.status, 'failed')) {
+      await db.update(tickets).set({ status: 'failed', failureReason: reason }).where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId), eq(tickets.status, current.status)));
+    } else if (current) {
+      try { await audit(db, { ...base('pipeline_error'), outcome: 'error', detail: { status: current.status, reason } }); } catch { /* best effort */ }
     }
   }
 }

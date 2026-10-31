@@ -21,6 +21,7 @@ async function Metrics() {
     <div className="grid max-w-2xl gap-4">
       <h1 className="font-display text-2xl font-semibold">Metrics</h1>
       <p className="text-sm text-stone-700">Computed from stored data only. Tickets here are synthetic, so these numbers describe the demo, not a customer baseline.</p>
+      {m.truncated && <p role="status" className="rounded border border-amber-400 bg-amber-50 p-2 text-sm text-amber-950">Row cap reached: these figures cover only the first rows read, not all data.</p>}
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
         <div className={TILE}><dt>Tickets</dt><dd className="text-xl font-semibold">{m.ticketCount}</dd></div>
         <div className={TILE}><dt>Replies sent (mock)</dt><dd className="text-xl font-semibold">{m.sentCount}</dd></div>
