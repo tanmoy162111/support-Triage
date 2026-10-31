@@ -52,19 +52,14 @@ README.md
 
 **Files:** Create project scaffold, `.env.example`, `vitest.config.ts`, `tests/global-setup.ts`. Modify `.gitignore` (merge only).
 
-- [ ] **Step 1: Check pgvector and create the databases**
+- [ ] **Step 1: Database (already provisioned by the controller via Docker)**
+
+`docker-compose.yml` runs `pgvector/pgvector:pg18` as container `support-triage-db` on `127.0.0.1:5434`, with databases `support_triage` and `support_triage_test`, `vector` enabled in both (see `docker/initdb/01-init.sql`). `.env.local` already exists (git-ignored) with the real `DATABASE_URL` and `TEST_DATABASE_URL`. Do not overwrite it. Verify only:
 
 ```bash
-psql -U tanmoy -d tanmoy -Atc "select name, default_version from pg_available_extensions where name='vector'"
+docker exec support-triage-db psql -U triage -d support_triage_test -Atc "select extname from pg_extension where extname='vector'"
 ```
-Expected: `vector|0.x.x`. If empty: `sudo apt install postgresql-18-pgvector`, then re-run.
-
-```bash
-psql -U tanmoy -d tanmoy -c "CREATE DATABASE support_triage" -c "CREATE DATABASE support_triage_test"
-sudo -u postgres psql -d support_triage -c "CREATE EXTENSION IF NOT EXISTS vector"
-sudo -u postgres psql -d support_triage_test -c "CREATE EXTENSION IF NOT EXISTS vector"
-```
-Expected: `CREATE DATABASE` twice, `CREATE EXTENSION` twice. (`CREATE EXTENSION vector` needs a superuser, which is why `sudo -u postgres` is used.)
+Expected: `vector`. If the container is stopped: `docker compose --env-file .env.local up -d db`.
 
 - [ ] **Step 2: Scaffold Next.js in a scratch directory and copy it in (do not overwrite existing `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `codex.md`, `docs/`, `.claude/`)**
 
@@ -90,7 +85,7 @@ pnpm exec playwright install chromium
 ```json
 {
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
@@ -103,12 +98,13 @@ pnpm exec playwright install chromium
 }
 ```
 
-- [ ] **Step 5: Create `.env.example`** (placeholders only) and your real `.env.local` (never commit)
+- [ ] **Step 5: Create `.env.example`** (placeholders only; `.env.local` already exists, do not touch it)
 
 ```
-# Postgres (local dev). Replace <password>.
-DATABASE_URL=postgres://tanmoy:<password>@localhost:5432/support_triage
-TEST_DATABASE_URL=postgres://tanmoy:<password>@localhost:5432/support_triage_test
+# Docker Postgres (see docker-compose.yml). Replace <password>.
+POSTGRES_PASSWORD=<password>
+DATABASE_URL=postgres://triage:<password>@127.0.0.1:5434/support_triage
+TEST_DATABASE_URL=postgres://triage:<password>@127.0.0.1:5434/support_triage_test
 
 # LLM: "mock" (deterministic, offline) or "gateway" (Vercel AI Gateway)
 LLM_PROVIDER=mock
@@ -119,10 +115,6 @@ EMBED_MODEL=
 RETRIEVAL_MIN_SCORE=0.15
 
 DEMO_TENANT_ID=demo
-```
-
-```bash
-cp .env.example .env.local   # then edit the passwords
 ```
 
 - [ ] **Step 6: Create `vitest.config.ts`**
