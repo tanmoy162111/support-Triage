@@ -36,11 +36,11 @@ Status flow: `received → classified → drafted → awaiting_review → approv
 
 1. **Ingest** — Zod validation (size cap, required fields), normalise (strip quoted threads/signatures), store. Body is untrusted data, never placed in the instruction part of a prompt. Idempotent on message id.
 2. **Identify customer** — deterministic: exact sender email, then domain. No LLM. Unmatched → `customer_id = null`, forces human handling, no account details used in the draft.
-3. **Classify** — one structured-output call: `topic` (billing, login/access, bug, how-to, shipping, cancellation/refund, other), `urgency` (low, normal, high, critical), `confidence`, `reasons`. Schema-validated; one repair retry, then `unclassified` and human handling. Confidence is a displayed signal only; routing never relies on it alone.
+3. **Classify** — one structured-output call: `topic` (billing, login/access, bug, how-to, shipping, cancellation/refund, other), `urgency` (low, normal, high, critical), `confidence`, `reasons`. Schema-validated; one repair retry, then `unclassified` and human handling. Confidence is a displayed signal; routing uses it only as a conservative extra flag (< 0.5), never alone to skip review.
 4. **Retrieve** — embed the ticket, top-k from `kb_chunks` (pgvector), filtered by tenant and published status. Best match below threshold → evidence `none`. Conflicting versions of the same doc → `conflicting`.
 5. **Draft** — model sees only the ticket, permitted customer fields and retrieved chunks; returns `reply`, `cited_chunk_ids`, `unsupported_points`. A deterministic validator checks that cited ids were retrieved, rejects drafts with no citation, and rejects refund amounts, dates or policy commitments absent from the cited text. A rejected draft becomes a "needs human, no grounded answer" placeholder.
 
-**`needs_human_handling` rules (plain code):** unmatched customer; evidence `none` or `conflicting`; refund/cancellation topic with no policy chunk cited; urgency `critical`; classification failed validation; prompt-injection heuristic fired (shown as a warning). Every ticket still goes through review; these rules change flagging and whether a draft is offered.
+**`needs_human_handling` rules (plain code):** unmatched customer; evidence `none` or `conflicting`; refund/cancellation topic with no policy chunk cited; urgency `critical`; classification failed validation; low model confidence (< 0.5, a conservative extra flag only); prompt-injection heuristic fired (shown as a warning). Every ticket still goes through review; these rules change flagging and whether a draft is offered.
 
 ## 4. Reviewer UI
 

@@ -81,7 +81,7 @@ export async function processTicket(deps: Deps, ticketId: string): Promise<void>
     const injection = detectInjection(`${ticket.subject}\n${ticket.body}`);
     const route = routeForHuman({
       customerMatched: customer !== null, evidence: draft.evidenceStatus, topic: cls.topic, urgency: cls.urgency,
-      classificationValid: cls.valid, citedChunkCount: draft.citedChunkIds.length,
+      classificationValid: cls.valid, confidence: cls.confidence, citedChunkCount: draft.citedChunkIds.length,
       injectionSuspected: injection.suspected, draftIsPlaceholder: draft.isPlaceholder,
     });
     await setStatus('drafted', 'awaiting_review', { needsHuman: route.needsHuman, needsHumanReasons: route.reasons, injectionSuspected: injection.suspected });
