@@ -28,6 +28,7 @@ export const tickets = pgTable('tickets', {
   needsHumanReasons: jsonb('needs_human_reasons').$type<string[]>().notNull().default([]),
   injectionSuspected: boolean('injection_suspected').notNull().default(false),
   source: text('source').notNull().default('synthetic'),
+  processingStartedAt: timestamp('processing_started_at', { withTimezone: true }),
 }, (t) => [
   uniqueIndex('tickets_tenant_message_uq').on(t.tenantId, t.messageId),
   index('tickets_tenant_status_idx').on(t.tenantId, t.status),
@@ -45,7 +46,7 @@ export const classifications = pgTable('classifications', {
   promptVersion: text('prompt_version').notNull(),
   model: text('model').notNull(),
   createdAt: ts('created_at'),
-}, (t) => [index('classifications_ticket_idx').on(t.ticketId)]);
+}, (t) => [uniqueIndex('classifications_ticket_uq').on(t.ticketId)]);
 
 export const kbChunks = pgTable('kb_chunks', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -69,7 +70,7 @@ export const drafts = pgTable('drafts', {
   unsupportedPoints: jsonb('unsupported_points').$type<string[]>().notNull().default([]),
   isPlaceholder: boolean('is_placeholder').notNull().default(false),
   createdAt: ts('created_at'),
-}, (t) => [index('drafts_ticket_idx').on(t.ticketId)]);
+}, (t) => [uniqueIndex('drafts_ticket_uq').on(t.ticketId)]);
 
 export const reviews = pgTable('reviews', {
   id: uuid('id').primaryKey().defaultRandom(),

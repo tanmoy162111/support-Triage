@@ -95,4 +95,40 @@ describe('processTicket', () => {
     expect(await deps.db.select().from(drafts).where(eq(drafts.ticketId, ticketId))).toHaveLength(0);
     expect(await deps.db.select().from(outboundMessages)).toHaveLength(0);
   });
+  it('never leaks error message text into failure_reason or audit detail', async () => {
+    const err = Object.assign(new Error('upstream echoed SECRET-EMAIL-BODY'), { status: 429 });
+    const deps = mk(new FakeLlm({ classification: [{ error: err }] }));
+    const { ticketId } = await ingest();
+    await processTicket(deps, ticketId);
+    const [t] = await deps.db.select().from(tickets).where(eq(tickets.id, ticketId));
+    expect(t.failureReason).toContain('classify');
+    expect(t.failureReason).toBe('classify failed (Error, status 429)');
+    expect(JSON.stringify(t)).not.toContain('SECRET-EMAIL-BODY');
+    const events = await deps.db.select().from(auditEvents).where(eq(auditEvents.ticketId, ticketId));
+    expect(JSON.stringify(events.map((e) => e.detail))).not.toContain('SECRET-EMAIL-BODY');
+  });
+  it('runs exactly once when two calls race for the same ticket', async () => {
+    const deps = mk();
+    const { ticketId } = await ingest();
+    await Promise.all([processTicket(deps, ticketId), processTicket(deps, ticketId)]);
+    const [t] = await deps.db.select().from(tickets).where(eq(tickets.id, ticketId));
+    expect(t.status).toBe('awaiting_review');
+    expect(t.processingStartedAt).not.toBeNull();
+    expect(await deps.db.select().from(classifications).where(eq(classifications.ticketId, ticketId))).toHaveLength(1);
+    expect(await deps.db.select().from(drafts).where(eq(drafts.ticketId, ticketId))).toHaveLength(1);
+    const steps = (await deps.db.select().from(auditEvents).where(eq(auditEvents.ticketId, ticketId))).map((e) => e.step);
+    expect(steps.filter((s) => s === 'classify')).toHaveLength(1);
+    expect(steps.filter((s) => s === 'route')).toHaveLength(1);
+  });
+  it('enforces one classification and one draft per ticket at the database level', async () => {
+    const deps = mk();
+    const { ticketId } = await ingest();
+    await processTicket(deps, ticketId);
+    const [c] = await deps.db.select().from(classifications).where(eq(classifications.ticketId, ticketId));
+    const [d] = await deps.db.select().from(drafts).where(eq(drafts.ticketId, ticketId));
+    const { id: _cid, ...cRow } = c; const { id: _did, ...dRow } = d;
+    void _cid; void _did;
+    await expect(deps.db.insert(classifications).values(cRow)).rejects.toThrow();
+    await expect(deps.db.insert(drafts).values(dRow)).rejects.toThrow();
+  });
 });

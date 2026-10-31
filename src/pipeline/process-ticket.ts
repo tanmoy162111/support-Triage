@@ -1,6 +1,7 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { tickets, classifications, drafts } from '@/db/schema';
 import { assertTransition } from '@/domain/state-machine';
+import { InvalidTransitionError } from '@/domain/errors';
 import { routeForHuman } from '@/domain/routing';
 import { detectInjection } from '@/domain/injection';
 import type { TicketStatus } from '@/domain/types';
@@ -11,22 +12,37 @@ import { classifyTicket } from './classify';
 import { retrieveEvidence } from './retrieve';
 import { draftReply } from './draft';
 
+/** Carries only a safe summary of a failure. Never copies `cause.message`, which can echo request content. */
 class StepError extends Error {
   constructor(readonly step: string, cause: unknown) {
-    super(`${step}: ${(cause as Error).message}`);
+    const e = cause as { name?: unknown; status?: unknown; statusCode?: unknown } | null;
+    const name = typeof e?.name === 'string' && e.name ? e.name : 'Error';
+    const code = [e?.status, e?.statusCode].find((n): n is number => typeof n === 'number' && Number.isFinite(n));
+    super(`${step} failed (${name}${code === undefined ? '' : `, status ${code}`})`);
   }
 }
 
-/** Runs the pipeline up to `awaiting_review`. It never sends. Safe to call twice: only `received` tickets are processed. */
+/**
+ * Runs the pipeline up to `awaiting_review`. It never sends. Safe to call concurrently: an atomic claim
+ * (`processing_started_at`) lets exactly one caller run; the others return without touching the ticket.
+ *
+ * Known limitation: a crash after the claim leaves the ticket in `received` with `processing_started_at`
+ * set, so it is not re-run automatically. Recovery (a stale-claim reaper) is future work.
+ */
 export async function processTicket(deps: Deps, ticketId: string): Promise<void> {
   const { db, tenantId } = deps;
   const runId = crypto.randomUUID();
-  const [ticket] = await db.select().from(tickets).where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId)));
-  if (!ticket || ticket.status !== 'received') return;
+  const [ticket] = await db.update(tickets).set({ processingStartedAt: sql`now()` })
+    .where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId), eq(tickets.status, 'received'), isNull(tickets.processingStartedAt)))
+    .returning();
+  if (!ticket) return;
 
   const setStatus = async (from: TicketStatus, to: TicketStatus, extra: Partial<typeof tickets.$inferInsert> = {}) => {
     assertTransition(from, to);
-    await db.update(tickets).set({ status: to, ...extra }).where(eq(tickets.id, ticketId));
+    const updated = await db.update(tickets).set({ status: to, ...extra })
+      .where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId), eq(tickets.status, from)))
+      .returning({ id: tickets.id });
+    if (updated.length === 0) throw new InvalidTransitionError(from, to);
   };
   const base = (step: string) => ({ tenantId, ticketId, runId, step });
   const step = async <T>(name: string, fn: () => Promise<{ value: T; detail?: Record<string, unknown> }>): Promise<T> => {
@@ -71,10 +87,10 @@ export async function processTicket(deps: Deps, ticketId: string): Promise<void>
     await setStatus('drafted', 'awaiting_review', { needsHuman: route.needsHuman, needsHumanReasons: route.reasons, injectionSuspected: injection.suspected });
     await audit(db, { ...base('route'), outcome: 'ok', detail: { needsHuman: route.needsHuman, reasons: route.reasons } });
   } catch (err) {
-    const reason = (err as Error).message.slice(0, 300);
-    const [current] = await db.select({ status: tickets.status }).from(tickets).where(eq(tickets.id, ticketId));
+    const reason = (err instanceof StepError ? err.message : `pipeline failed (${(err as Error)?.name || 'Error'})`).slice(0, 300);
+    const [current] = await db.select({ status: tickets.status }).from(tickets).where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId)));
     if (current && current.status !== 'failed') {
-      await db.update(tickets).set({ status: 'failed', failureReason: reason }).where(eq(tickets.id, ticketId));
+      await db.update(tickets).set({ status: 'failed', failureReason: reason }).where(and(eq(tickets.id, ticketId), eq(tickets.tenantId, tenantId)));
     }
   }
 }
