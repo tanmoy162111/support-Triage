@@ -42,3 +42,6 @@ test-results/
 .playwright-mcp/
 evals/results/
 playwright-report/
+
+# GSD planning checkpoints
+.planning/
