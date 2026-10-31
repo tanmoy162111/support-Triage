@@ -8,6 +8,7 @@ import { StatusChip } from '@/components/StatusChip';
 import { LoadSamplesButton } from '@/components/LoadSamplesButton';
 import { PasteEmailForm } from '@/components/PasteEmailForm';
 import { ReviewPanel } from '@/components/ReviewPanel';
+import { SendApprovedPanel } from '@/components/SendApprovedPanel';
 
 const CARD = 'rounded border border-stone-400 bg-white';
 const H = 'font-display text-lg font-semibold';
@@ -116,6 +117,7 @@ async function Inbox({ searchParams }: { searchParams: SearchParams }) {
                     initialBody={detail.review?.finalBody ?? detail.draft.body} isPlaceholder={detail.draft.isPlaceholder}
                     disabled={detail.ticket.status !== 'awaiting_review'}
                   />
+                  {detail.ticket.status === 'approved' && <SendApprovedPanel ticketId={detail.ticket.id} toEmail={detail.ticket.fromEmail} />}
                   {detail.ticket.status === 'sent' && <p role="status" className="rounded border border-emerald-500 bg-emerald-100 p-2 text-sm">Sent (mock) · nothing was delivered to a real mailbox.</p>}
                   {detail.ticket.status === 'rejected' && <p role="status" className="rounded border border-rose-400 bg-rose-100 p-2 text-sm">Rejected: {detail.review?.rejectReason}</p>}
                   <div className="text-sm">
