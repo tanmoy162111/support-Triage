@@ -46,6 +46,15 @@ describe('sendApproved (approval gate)', () => {
     expect(mailer.sent).toHaveLength(0);
     expect(await outbound()).toHaveLength(0);
   });
+  it('refuses when an approving review exists but the ticket is not in the approved state', async () => {
+    const { d, ticketId } = await ready();
+    await submitReview(d, { ticketId, reviewer: 'demo', decision: 'approved' });
+    // Simulate drift: the review row says approved, but the ticket was moved elsewhere.
+    await d.db.update(tickets).set({ status: 'awaiting_review' }).where(eq(tickets.id, ticketId));
+    await expect(sendApproved(d, ticketId)).rejects.toThrow(ApprovalRequiredError);
+    expect(mailer.sent).toHaveLength(0);
+    expect(await outbound()).toHaveLength(0);
+  });
   it('does not send when the latest review is rejected even if an older one was approved', async () => {
     const { d, ticketId } = await ready();
     await submitReview(d, { ticketId, reviewer: 'demo', decision: 'approved' });
