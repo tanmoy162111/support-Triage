@@ -39,3 +39,4 @@ node_modules/
 coverage/
 test-results/
 !.env.example
+.playwright-mcp/
