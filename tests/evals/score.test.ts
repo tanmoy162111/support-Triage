@@ -3,7 +3,7 @@ import { scoreRuns, type RunRecord } from '../../evals/score';
 
 const rec = (over: Partial<RunRecord>): RunRecord => ({
   id: 'x', kind: 'normal', expected: { topic: 'billing', urgency: 'normal', docId: 'billing-invoices', needsHuman: false },
-  actual: { topic: 'billing', urgency: 'normal', confidence: 0.9, retrievedDocIds: ['billing-invoices'], needsHuman: false, isPlaceholder: false, groundedOk: true, replyBody: 'ok', status: 'awaiting_review', sentCount: 0 },
+  actual: { topic: 'billing', urgency: 'normal', confidence: 0.9, retrievedDocIds: ['billing-invoices'], needsHuman: false, isPlaceholder: false, citedDocIds: ['billing-invoices'], replyBody: 'ok', status: 'awaiting_review', sentCount: 0 },
   latencyMs: 10, ...over,
 });
 
@@ -35,6 +35,17 @@ describe('scoreRuns', () => {
     const s = scoreRuns([rec({}), rec({ expected: { topic: 'other', urgency: 'normal', docId: null, needsHuman: true } })]);
     expect(s.sampleSizes).toMatchObject({ topic: 2, retrieval: 1, needsHumanPositives: 1, flagged: 0, drafts: 2 });
     expect(s.needsHumanPrecision).toBeNull();
+  });
+  it('scores citing the expected doc over non-placeholder drafts that have an expected doc', () => {
+    const hit = rec({});
+    const miss = rec({ actual: { ...rec({}).actual, citedDocIds: ['shipping-times'] } });
+    const placeholder = rec({ actual: { ...rec({}).actual, isPlaceholder: true, citedDocIds: [] } });
+    const noDoc = rec({ expected: { topic: 'other', urgency: 'normal', docId: null, needsHuman: true } });
+    const s = scoreRuns([hit, miss, placeholder, noDoc]);
+    expect(s.citedExpectedDocRate).toBe(0.5);
+    expect(s.sampleSizes.citedExpectedDoc).toBe(2);
+    expect(s).not.toHaveProperty('groundedDraftRate');
+    expect(scoreRuns([placeholder]).citedExpectedDocRate).toBeNull();
   });
   it('returns nulls for empty input rather than NaN', () => {
     expect(scoreRuns([]).topicAccuracy).toBeNull();

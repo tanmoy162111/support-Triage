@@ -21,11 +21,11 @@ Ticket states: `received -> classified -> drafted -> awaiting_review -> approved
 | Classify (topic, urgency, confidence, reasons) | **LLM** (schema-validated) |
 | Retrieve help-doc chunks (tenant + published filter, score threshold, conflicting-version check) | embedding + deterministic filter |
 | Draft reply (reply, cited chunk ids, unsupported points) | **LLM** |
-| Draft validator (cited ids must have been retrieved, citation required, no uncited amounts/dates/commitments) | deterministic code |
+| Draft validator (cited ids must have been retrieved, citation required; amounts, percentages, durations and dates, including spelled-out numbers and alternate date formats, and risky phrases such as "full refund", "for free", "credit", "waive", "guarantee" must appear in a cited chunk) | deterministic code |
 | Needs-human routing | deterministic rules |
 | Approval gate and send | deterministic code |
 
-**Needs-human rules** (`src/domain/routing.ts`): unmatched customer; no evidence; conflicting evidence; cancellation/refund topic with no cited policy; critical urgency; invalid classification; `low_confidence` (model confidence < 0.5, a conservative extra flag only); possible prompt injection; draft rejected by the validator. These change flagging and whether a draft is offered. Every ticket still goes through review.
+**Needs-human rules** (`src/domain/routing.ts`): unmatched customer; no evidence; conflicting evidence; cancellation/refund topic that does not cite the `refund-policy` or `cancel-subscription` doc; critical urgency; invalid classification; `low_confidence` (model confidence < 0.5, a conservative extra flag only); possible prompt injection; draft rejected by the validator. These change flagging and whether a draft is offered. Every ticket still goes through review.
 
 **Approval gate.**
 - `outbound_messages.review_id` is `NOT NULL` (foreign key to `reviews`).
@@ -97,7 +97,7 @@ The eval set (`evals/data/tickets.v1.json`, version `v1`) is synthetic: 121 case
 - 8 edge cases: unmatched sender, conflicting doc versions, vague, no evidence, critical outage, non-English, multi-issue, refund with no policy.
 - 5 prompt-injection cases.
 
-`pnpm eval` runs each case through the real pipeline in a throwaway tenant (cleaned up afterwards) and scores: topic and urgency accuracy with a confusion matrix, topic accuracy by confidence band, retrieval hit rate, draft grounding (via the deterministic validator), needs-human recall and precision, injection bypasses (any bypass makes the command exit non-zero), latency, and token usage. Injection cases are excluded from the accuracy figures.
+`pnpm eval` runs each case through the real pipeline in a throwaway tenant (cleaned up afterwards) and scores: topic and urgency accuracy with a confusion matrix, topic accuracy by confidence band, retrieval hit rate, the share of drafts that cite the expected doc, needs-human recall and precision, injection bypasses (any bypass makes the command exit non-zero), latency, and token usage. Injection cases are excluded from the accuracy figures.
 
 **Results with `LLM_PROVIDER=mock`, run 2026-10-31** (non-injection cases, n = 116 unless stated):
 
@@ -106,7 +106,7 @@ The eval set (`evals/data/tickets.v1.json`, version `v1`) is synthetic: 121 case
 | Topic accuracy | 91.4% (n = 116) |
 | Urgency accuracy | 68.1% (n = 116) |
 | Retrieval hit rate | 99.1% (n = 112 cases with an expected doc) |
-| Grounded draft rate | 100% (n = 113 drafts) |
+| Drafts citing the expected doc | 100% (n = 111 non-placeholder drafts with an expected doc) |
 | Needs-human recall | 100% (7 positives) |
 | Needs-human precision | 50% (14 flagged) |
 | Topic accuracy, confidence 0.8-1.0 | 99.0% (n = 105) |
@@ -118,7 +118,13 @@ The eval set (`evals/data/tickets.v1.json`, version `v1`) is synthetic: 121 case
 
 These numbers measure the **mock's keyword rules, not model quality**. They come from synthetic, templated, small-sample data and do not establish production accuracy.
 
-**Not done yet:** the real-model evaluation and calibration of the retrieval threshold (`RETRIEVAL_MIN_SCORE`, currently 0.15 for the lexical mock). Both need a gateway key.
+The earlier "grounded draft rate" was removed: it re-validated drafts that had already passed the pipeline's validator against a looser check, so it could only be 100%. "Drafts citing the expected doc" is not circular, but under the mock it is also near-trivial because the mock echoes the first retrieved chunk.
+
+**Not done yet:**
+- The real-model evaluation and calibration of the retrieval threshold (`RETRIEVAL_MIN_SCORE`, currently 0.15 for the lexical mock). Both need a gateway key.
+- The LLM-judge grounding check from the spec is **not implemented**. Only the deterministic validator exists; it checks that numbers, dates and listed phrases appear in cited text, not that the cited text actually supports each claim.
+- The injection score under the mock provider cannot fail: the mock echoes the first chunk and ignores the email body. It only becomes meaningful with a real model.
+- The injection heuristic is a regex flag, easy to evade, and gates nothing. It only shows a warning; every ticket is reviewed regardless.
 
 Observed trade-off: with the mock, the `low_confidence` rule raises needs-human recall and lowers precision.
 
@@ -139,6 +145,8 @@ Observed trade-off: with the mock, the `low_confidence` rule raises needs-human 
 - The UI uses Tailwind, not shadcn/ui (the spec named shadcn/ui).
 - The knowledge base has 16 seeded help chunks (spec target was 20-30).
 - Retrieval threshold margin with the lexical mock is thin (noise around 0.13 against a 0.15 threshold).
+- Routing rules are conservative flags, not proof: the refund rule only checks that a refund policy doc is cited (not that it supports the claim), and `low_confidence` relies on the model's own confidence estimate.
+- Migration `0001` adds unique indexes and would fail on a database that already holds duplicate classification or draft rows; it is safe only for the dev database for now.
 - A crash after claiming a ticket for processing, or after claiming an outbound row, leaves it stuck. There is no recovery job; sending is at-most-once by design.
 - The gateway path is untested against the live service.
 - Needs-human reason codes are shown raw in the UI.

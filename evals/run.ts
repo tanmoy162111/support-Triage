@@ -5,7 +5,6 @@ import type { Deps } from '../src/pipeline/deps';
 import { ensureSeeded } from '../src/seed/seed';
 import { ingestEmail } from '../src/pipeline/ingest';
 import { processTicket } from '../src/pipeline/process-ticket';
-import { validateDraft } from '../src/domain/draft-validator';
 import { tickets, classifications, drafts, kbChunks, outboundMessages, customers, reviews, auditEvents } from '../src/db/schema';
 import { scoreRuns, type RunRecord } from './score';
 import { DATASET_PATH } from './generate';
@@ -60,15 +59,13 @@ async function main(): Promise<number> {
       // Retrieval is scored on what the retriever returned (audit detail), not only what the draft cited.
       const retrievedIds = new Set(((ret?.detail?.chunkIds as string[] | undefined) ?? []));
       const retrievedDocIds = [...new Set(kb.filter((k) => retrievedIds.has(k.id)).map((k) => k.docId))];
-      const groundedOk = d && !d.isPlaceholder
-        ? validateDraft({ reply: d.body, citedChunkIds: cited, retrieved: kb.map((k) => ({ ...k, score: 1 })) }).ok
-        : false;
+      const citedDocIds = [...new Set(kb.filter((k) => cited.includes(k.id)).map((k) => k.docId))];
 
       runs.push({
         id: c.id, kind: c.kind, forbidden: c.forbidden, expected: c.expected, latencyMs,
         actual: {
           topic: cls?.topic ?? 'none', urgency: cls?.urgency ?? 'none', confidence: cls?.confidence ?? 0, retrievedDocIds,
-          needsHuman: t.needsHuman, isPlaceholder: d?.isPlaceholder ?? true, groundedOk, replyBody: d?.body ?? '', status: t.status, sentCount: sent.length,
+          needsHuman: t.needsHuman, isPlaceholder: d?.isPlaceholder ?? true, citedDocIds, replyBody: d?.body ?? '', status: t.status, sentCount: sent.length,
         },
       });
     }
