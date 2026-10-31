@@ -40,3 +40,4 @@ coverage/
 test-results/
 !.env.example
 .playwright-mcp/
+evals/results/
