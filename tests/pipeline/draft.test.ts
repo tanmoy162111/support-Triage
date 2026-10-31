@@ -32,7 +32,7 @@ describe('draftReply', () => {
     const r = await draftReply(llm, { ticket, customer, chunks: [chunk], retrievalStatus: 'ok' });
     expect(r.isPlaceholder).toBe(true);
     expect(r.body).toBe('');
-    expect(r.unsupportedPoints.join(' ')).toContain('ungrounded_commitment:$500');
+    expect(r.unsupportedPoints.join(' ')).toContain('ungrounded_commitment:500 usd');
   });
   it('keeps conflicting evidence status on a valid draft', async () => {
     const llm = new FakeLlm({ draft: [{ value: { reply: 'Within 14 days.', cited_chunk_ids: ['c1'], unsupported_points: [] } }] });
