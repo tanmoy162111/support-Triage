@@ -79,9 +79,11 @@ export async function processTicket(deps: Deps, ticketId: string): Promise<void>
     await setStatus('classified', 'drafted');
 
     const injection = detectInjection(`${ticket.subject}\n${ticket.body}`);
+    // Cited ids are real retrieved chunk ids for a non-placeholder draft; map them to doc ids via the retrieval result.
+    const citedDocIds = evidence.chunks.filter((c) => draft.citedChunkIds.includes(c.id)).map((c) => c.docId);
     const route = routeForHuman({
       customerMatched: customer !== null, evidence: draft.evidenceStatus, topic: cls.topic, urgency: cls.urgency,
-      classificationValid: cls.valid, confidence: cls.confidence, citedChunkCount: draft.citedChunkIds.length,
+      classificationValid: cls.valid, confidence: cls.confidence, citedDocIds,
       injectionSuspected: injection.suspected, draftIsPlaceholder: draft.isPlaceholder,
     });
     await setStatus('drafted', 'awaiting_review', { needsHuman: route.needsHuman, needsHumanReasons: route.reasons, injectionSuspected: injection.suspected });

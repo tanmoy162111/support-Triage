@@ -1,3 +1,4 @@
+import { REFUND_POLICY_DOC_IDS } from './constants';
 import type { EvidenceStatus, Topic, Urgency } from './types';
 
 /** Below this self-reported confidence a ticket is flagged for human handling. */
@@ -11,7 +12,8 @@ export interface RoutingInput {
   classificationValid: boolean;
   /** The classifier's self-reported confidence (0 to 1). */
   confidence: number;
-  citedChunkCount: number;
+  /** Doc ids of the chunks the draft cites. */
+  citedDocIds: string[];
   injectionSuspected: boolean;
   draftIsPlaceholder: boolean;
 }
@@ -26,7 +28,7 @@ export function routeForHuman(i: RoutingInput): RoutingResult {
   if (!i.customerMatched) reasons.push('unmatched_customer');
   if (i.evidence === 'none') reasons.push('no_evidence');
   if (i.evidence === 'conflicting') reasons.push('conflicting_evidence');
-  if (i.topic === 'cancellation_refund' && i.citedChunkCount === 0) reasons.push('refund_without_policy_citation');
+  if (i.topic === 'cancellation_refund' && !i.citedDocIds.some((d) => REFUND_POLICY_DOC_IDS.includes(d))) reasons.push('refund_without_policy_citation');
   if (i.urgency === 'critical') reasons.push('critical_urgency');
   if (!i.classificationValid) reasons.push('classification_invalid');
   // Model confidence is not proof of correctness: this is a conservative extra flag only,

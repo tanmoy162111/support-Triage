@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import { REFUND_POLICY_DOC_IDS } from '@/domain/constants';
 import { routeForHuman, LOW_CONFIDENCE_THRESHOLD, type RoutingInput } from '@/domain/routing';
 
 const ok: RoutingInput = {
   customerMatched: true, evidence: 'supported', topic: 'how_to', urgency: 'normal',
-  classificationValid: true, confidence: 0.9, citedChunkCount: 1, injectionSuspected: false, draftIsPlaceholder: false,
+  classificationValid: true, confidence: 0.9, citedDocIds: ['shipping-times'], injectionSuspected: false, draftIsPlaceholder: false,
 };
 
 describe('routeForHuman', () => {
@@ -14,7 +15,7 @@ describe('routeForHuman', () => {
     [{ customerMatched: false }, 'unmatched_customer'],
     [{ evidence: 'none' as const }, 'no_evidence'],
     [{ evidence: 'conflicting' as const }, 'conflicting_evidence'],
-    [{ topic: 'cancellation_refund' as const, citedChunkCount: 0 }, 'refund_without_policy_citation'],
+    [{ topic: 'cancellation_refund' as const, citedDocIds: ['shipping-times'] }, 'refund_without_policy_citation'],
     [{ urgency: 'critical' as const }, 'critical_urgency'],
     [{ classificationValid: false, confidence: 0 }, 'classification_invalid'],
     [{ confidence: 0.49 }, 'low_confidence'],
@@ -36,7 +37,13 @@ describe('routeForHuman', () => {
     const r = routeForHuman({ ...ok, customerMatched: false, urgency: 'critical' });
     expect(r.reasons).toEqual(['unmatched_customer', 'critical_urgency']);
   });
-  it('allows refund topic when a policy chunk is cited', () => {
-    expect(routeForHuman({ ...ok, topic: 'cancellation_refund', citedChunkCount: 1 }).needsHuman).toBe(false);
+  it.each(REFUND_POLICY_DOC_IDS)('allows refund topic when %s is cited', (docId) => {
+    expect(routeForHuman({ ...ok, topic: 'cancellation_refund', citedDocIds: ['shipping-times', docId] }).needsHuman).toBe(false);
+  });
+  it('flags refund topic with no citations at all', () => {
+    expect(routeForHuman({ ...ok, topic: 'cancellation_refund', citedDocIds: [] }).reasons).toContain('refund_without_policy_citation');
+  });
+  it('does not require a policy citation for other topics', () => {
+    expect(routeForHuman({ ...ok, topic: 'shipping', citedDocIds: [] }).needsHuman).toBe(false);
   });
 });
