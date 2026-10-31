@@ -21,7 +21,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Password problem",
-      "body": "Hello, How do I reset my password? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How do I reset my password? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "login_access",
         "urgency": "high",
@@ -60,7 +60,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Password problem",
-      "body": "Hello, The password reset email never arrives. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, The password reset email never arrives. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "login_access",
         "urgency": "high",
@@ -99,7 +99,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Password problem",
-      "body": "Hello, I forgot my password and need a reset link. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, I forgot my password and need a reset link. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "login_access",
         "urgency": "high",
@@ -138,7 +138,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Invoice question",
-      "body": "Hello, Where can I download my invoice as a PDF? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Where can I download my invoice as a PDF? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "billing",
         "urgency": "high",
@@ -177,7 +177,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Invoice question",
-      "body": "Hello, I need a copy of last month's invoice from invoice history. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, I need a copy of last month's invoice from invoice history. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "billing",
         "urgency": "high",
@@ -216,7 +216,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Invoice question",
-      "body": "Hello, Where do I find receipts for billing? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Where do I find receipts for billing? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "billing",
         "urgency": "high",
@@ -255,7 +255,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Refund request",
-      "body": "Hello, I bought the annual plan and want a refund. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, I bought the annual plan and want a refund. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "cancellation_refund",
         "urgency": "high",
@@ -294,7 +294,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Refund request",
-      "body": "Hello, Can I get a refund on my annual plan purchase? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Can I get a refund on my annual plan purchase? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "cancellation_refund",
         "urgency": "high",
@@ -333,7 +333,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Refund request",
-      "body": "Hello, What is your refund policy for annual plans? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, What is your refund policy for annual plans? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "cancellation_refund",
         "urgency": "high",
@@ -372,7 +372,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Cancel plan",
-      "body": "Hello, How do I cancel my subscription? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How do I cancel my subscription? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "cancellation_refund",
         "urgency": "high",
@@ -411,7 +411,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Cancel plan",
-      "body": "Hello, I want to cancel my plan from billing settings. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, I want to cancel my plan from billing settings. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "cancellation_refund",
         "urgency": "high",
@@ -450,7 +450,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Cancel plan",
-      "body": "Hello, Please explain how to cancel the plan. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Please explain how to cancel the plan. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "cancellation_refund",
         "urgency": "high",
@@ -489,7 +489,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Damaged parcel",
-      "body": "Hello, My parcel arrived damaged, what should I do? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, My parcel arrived damaged, what should I do? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "shipping",
         "urgency": "high",
@@ -528,7 +528,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Damaged parcel",
-      "body": "Hello, The parcel did not arrive. Please review the report. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, The parcel did not arrive. Please review the report. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "shipping",
         "urgency": "high",
@@ -567,7 +567,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Damaged parcel",
-      "body": "Hello, Damaged parcel, I have a photo of the damage. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Damaged parcel, I have a photo of the damage. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "shipping",
         "urgency": "high",
@@ -606,7 +606,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Delivery time",
-      "body": "Hello, How long does standard delivery take? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How long does standard delivery take? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "shipping",
         "urgency": "high",
@@ -645,7 +645,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Delivery time",
-      "body": "Hello, When will my order be delivered? I need the tracking link. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, When will my order be delivered? I need the tracking link. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "shipping",
         "urgency": "high",
@@ -684,7 +684,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Delivery time",
-      "body": "Hello, What are your standard delivery times? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, What are your standard delivery times? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "shipping",
         "urgency": "high",
@@ -723,7 +723,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Adding teammates",
-      "body": "Hello, How do I invite teammates to the workspace? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How do I invite teammates to the workspace? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "how_to",
         "urgency": "high",
@@ -762,7 +762,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Adding teammates",
-      "body": "Hello, How can I invite a new member to join? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How can I invite a new member to join? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "how_to",
         "urgency": "high",
@@ -801,7 +801,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Adding teammates",
-      "body": "Hello, Where do admins invite teammates? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Where do admins invite teammates? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "how_to",
         "urgency": "high",
@@ -840,7 +840,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Slack",
-      "body": "Hello, How do I connect the Slack integration? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How do I connect the Slack integration? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "how_to",
         "urgency": "high",
@@ -879,7 +879,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Slack",
-      "body": "Hello, How to set up Slack notifications in a channel? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How to set up Slack notifications in a channel? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "how_to",
         "urgency": "high",
@@ -918,7 +918,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Slack",
-      "body": "Hello, Where do I authorize Slack? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Where do I authorize Slack? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "how_to",
         "urgency": "high",
@@ -957,7 +957,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Sync error",
-      "body": "Hello, The app shows a sync error and fails to load my data. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, The app shows a sync error and fails to load my data. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "bug",
         "urgency": "high",
@@ -996,7 +996,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Sync error",
-      "body": "Hello, I get a sync error every time, it is broken. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, I get a sync error every time, it is broken. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "bug",
         "urgency": "high",
@@ -1035,7 +1035,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Sync error",
-      "body": "Hello, Sync error persists after I sign out and back in. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Sync error persists after I sign out and back in. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "bug",
         "urgency": "high",
@@ -1074,7 +1074,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Slow pages",
-      "body": "Hello, Pages load very slowly and the app crashes sometimes. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Pages load very slowly and the app crashes sometimes. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "bug",
         "urgency": "high",
@@ -1113,7 +1113,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Slow pages",
-      "body": "Hello, The app is slow loading, is it broken? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, The app is slow loading, is it broken? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "bug",
         "urgency": "high",
@@ -1152,7 +1152,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Slow pages",
-      "body": "Hello, Slow loading pages even after refresh. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Slow loading pages even after refresh. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "bug",
         "urgency": "high",
@@ -1191,7 +1191,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Lost phone",
-      "body": "Hello, I lost my device and cannot get my two-factor code. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, I lost my device and cannot get my two-factor code. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "login_access",
         "urgency": "high",
@@ -1230,7 +1230,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Lost phone",
-      "body": "Hello, Lost the device for two-factor authentication, I have no access. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Lost the device for two-factor authentication, I have no access. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "login_access",
         "urgency": "high",
@@ -1269,7 +1269,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Lost phone",
-      "body": "Hello, Two-factor lost device, I need access to log in. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Two-factor lost device, I need access to log in. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "login_access",
         "urgency": "high",
@@ -1308,7 +1308,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Billing contact",
-      "body": "Hello, How do I change the billing contact email for receipts? This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, How do I change the billing contact email for receipts? This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "billing",
         "urgency": "high",
@@ -1347,7 +1347,7 @@
       "kind": "normal",
       "fromEmail": "priya@globex.example",
       "subject": "Billing contact",
-      "body": "Hello, Receipts go to the wrong person, change billing contact. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Receipts go to the wrong person, change billing contact. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "billing",
         "urgency": "high",
@@ -1386,7 +1386,7 @@
       "kind": "normal",
       "fromEmail": "luis@hooli.example",
       "subject": "Billing contact",
-      "body": "Hello, Update the billing contact on our account. This is urgent, I am locked out and cannot work. Please advise.",
+      "body": "Hello, Update the billing contact on our account. This is urgent, I cannot get my work done. Please advise.",
       "expected": {
         "topic": "billing",
         "urgency": "high",

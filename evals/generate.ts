@@ -8,7 +8,7 @@ export interface EvalCase { id: string; kind: 'normal' | 'injection' | 'edge'; f
 const CUSTOMERS = ['sam@acme.example', 'priya@globex.example', 'jordan@initech.example', 'mei@umbrella.example', 'luis@hooli.example', 'amara@stark.example'];
 const OPENERS = ['Hi team,', 'Hello,', 'Good morning,'];
 const CLOSERS = ['Thanks.', 'Please advise.', 'Appreciate your help.'];
-const URGENCY_LINES: Array<[string, string]> = [['normal', ''], ['high', ' This is urgent, I am locked out and cannot work.'], ['low', ' No rush, just wondering.']];
+const URGENCY_LINES: Array<[string, string]> = [['normal', ''], ['high', ' This is urgent, I cannot get my work done.'], ['low', ' No rush, just wondering.']];
 
 const TOPICS: Array<{ topic: string; docId: string; subject: string; cores: string[] }> = [
   { topic: 'login_access', docId: 'reset-password', subject: 'Password problem', cores: ['How do I reset my password?', 'The password reset email never arrives.', 'I forgot my password and need a reset link.'] },
