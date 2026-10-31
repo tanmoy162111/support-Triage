@@ -85,7 +85,7 @@ pnpm exec playwright install chromium
 ```json
 {
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
