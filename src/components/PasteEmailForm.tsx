@@ -15,7 +15,7 @@ export function PasteEmailForm() {
     const fd = new FormData(form);
     setBusy(true); setError(null);
     try {
-      const res = await fetch('/api/ingest/paste', { method: 'POST', body: JSON.stringify(Object.fromEntries(fd)) });
+      const res = await fetch('/api/ingest/paste', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.fromEntries(fd)) });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? 'Failed'); return; }
       form.reset();

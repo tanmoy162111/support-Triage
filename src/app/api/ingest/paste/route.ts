@@ -4,7 +4,7 @@ import { getDeps } from '@/server/deps';
 import { ingestEmail } from '@/pipeline/ingest';
 import { processTicket } from '@/pipeline/process-ticket';
 import { DomainError } from '@/domain/errors';
-import { handleError, readJson } from '@/server/http';
+import { assertSameOrigin, handleError, readJson } from '@/server/http';
 
 export const maxDuration = 120;
 
@@ -18,6 +18,7 @@ const Body = z.strictObject({
 /** Ingests one pasted (synthetic/mock inbox) email and runs the pipeline inline. It stops at awaiting_review. */
 export async function POST(req: Request) {
   try {
+    assertSameOrigin(req);
     const parsed = Body.safeParse(await readJson(req));
     if (!parsed.success) throw new DomainError('Invalid request', 400);
     const deps = getDeps();

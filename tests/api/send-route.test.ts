@@ -16,8 +16,8 @@ const { loadSamples } = await import('@/services/samples');
 const { listTickets } = await import('@/services/queries');
 const { submitReview } = await import('@/services/review');
 
-const send = (id: string, body?: string) =>
-  POST(new Request('http://x', { method: 'POST', body }), { params: Promise.resolve({ id }) });
+const send = (id: string, body?: string, headers: Record<string, string> = {}) =>
+  POST(new Request('http://x', { method: 'POST', body, headers }), { params: Promise.resolve({ id }) });
 
 beforeEach(async () => { await resetDb(); mailer.sent.length = 0; await loadSamples(testDeps()); });
 
@@ -58,6 +58,12 @@ describe('POST /api/tickets/[id]/send', () => {
     const t = (await listTickets(testDeps(), {})).find((x) => !x.needsHuman)!;
     await submitReview(testDeps(), { ticketId: t.id, reviewer: 'demo-reviewer', decision: 'approved' });
     expect((await send(t.id, JSON.stringify({ finalBody: 'x' }))).status).toBe(400);
+    expect(mailer.sent).toHaveLength(0);
+  });
+  it('rejects a cross-origin request with 403', async () => {
+    const t = (await listTickets(testDeps(), {})).find((x) => !x.needsHuman)!;
+    await submitReview(testDeps(), { ticketId: t.id, reviewer: 'demo-reviewer', decision: 'approved' });
+    expect((await send(t.id, undefined, { origin: 'https://evil.example', host: 'localhost:3000' })).status).toBe(403);
     expect(mailer.sent).toHaveLength(0);
   });
 });

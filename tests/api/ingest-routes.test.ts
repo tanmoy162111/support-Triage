@@ -14,7 +14,8 @@ const sample = await import('@/app/api/ingest/sample/route');
 const paste = await import('@/app/api/ingest/paste/route');
 
 const pasteCall = (body: string, headers: Record<string, string> = {}) =>
-  paste.POST(new Request('http://x', { method: 'POST', body, headers }));
+  paste.POST(new Request('http://x', { method: 'POST', body, headers: { 'content-type': 'application/json', ...headers } }));
+const sampleCall = (headers: Record<string, string> = {}) => sample.POST(new Request('http://x', { method: 'POST', headers }));
 const good = { fromEmail: 'sam@acme.test', subject: 'Need help', body: 'How do I reset my password?' };
 
 beforeEach(async () => { await resetDb(); mailer.sent.length = 0; });
@@ -22,15 +23,33 @@ beforeEach(async () => { await resetDb(); mailer.sent.length = 0; });
 describe('POST /api/ingest/sample', () => {
   it('creates 8 tickets, then 0 on repeat, and sends nothing', async () => {
     expect(sample.maxDuration).toBe(120);
-    expect(await (await sample.POST()).json()).toEqual({ created: 8 });
-    expect(await (await sample.POST()).json()).toEqual({ created: 0 });
+    expect(await (await sampleCall()).json()).toEqual({ created: 8 });
+    expect(await (await sampleCall()).json()).toEqual({ created: 0 });
     expect(mailer.sent).toHaveLength(0);
   });
 });
 
+describe('POST /api/ingest/sample origin check', () => {
+  it('rejects a cross-origin request with 403 and creates nothing', async () => {
+    expect((await sampleCall({ origin: 'https://evil.example', host: 'localhost:3000' })).status).toBe(403);
+    expect(await getTestDb().select().from(tickets)).toHaveLength(0);
+  });
+  it('allows a same-origin request, honouring x-forwarded-host', async () => {
+    expect((await sampleCall({ origin: 'https://app.example', host: 'internal:3000', 'x-forwarded-host': 'app.example' })).status).toBe(200);
+  });
+});
+
 describe('POST /api/ingest/paste', () => {
+  it('rejects a non-JSON content type with 415', async () => {
+    const res = await pasteCall(JSON.stringify(good), { 'content-type': 'text/plain' });
+    expect(res.status).toBe(415);
+  });
+  it('rejects a cross-origin request with 403', async () => {
+    const res = await pasteCall(JSON.stringify(good), { origin: 'https://evil.example', host: 'localhost:3000' });
+    expect(res.status).toBe(403);
+  });
   it('creates an awaiting_review ticket with a paste- message id', async () => {
-    await sample.POST(); // seeds help docs and customers
+    await sampleCall(); // seeds help docs and customers
     const res = await pasteCall(JSON.stringify(good));
     expect(res.status).toBe(200);
     const { ticketId } = await res.json();

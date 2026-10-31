@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getDeps } from '@/server/deps';
 import { sendApproved } from '@/services/send';
 import { DomainError } from '@/domain/errors';
-import { handleError } from '@/server/http';
+import { assertSameOrigin, handleError } from '@/server/http';
 
 /**
  * Retry path for a ticket stuck in `approved` (the review was recorded but the send never claimed its outbound
@@ -12,6 +12,7 @@ import { handleError } from '@/server/http';
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    assertSameOrigin(req);
     const { id } = await params;
     if (!z.string().uuid().safeParse(id).success) throw new DomainError('Ticket not found', 404);
     if ((await req.text()).trim().length > 0) throw new DomainError('Invalid request', 400);

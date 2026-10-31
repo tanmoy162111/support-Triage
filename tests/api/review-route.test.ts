@@ -16,7 +16,7 @@ const { loadSamples } = await import('@/services/samples');
 const { listTickets } = await import('@/services/queries');
 
 const raw = (id: string, body: string, headers: Record<string, string> = {}) =>
-  POST(new Request('http://x', { method: 'POST', body, headers }), { params: Promise.resolve({ id }) });
+  POST(new Request('http://x', { method: 'POST', body, headers: { 'content-type': 'application/json', ...headers } }), { params: Promise.resolve({ id }) });
 const call = (id: string, body: unknown) => raw(id, JSON.stringify(body));
 
 beforeEach(async () => { await resetDb(); mailer.sent.length = 0; await loadSamples(testDeps()); });
@@ -88,5 +88,24 @@ describe('POST /api/tickets/[id]/review', () => {
     const other = await insertTicket(OTHER_TENANT, { status: 'awaiting_review' });
     expect((await call(other.id, { decision: 'approved' })).status).toBe(404);
     expect(mailer.sent).toHaveLength(0);
+  });
+
+  it('a non-JSON content type is 415 and does nothing', async () => {
+    const t = (await listTickets(testDeps(), {})).find((x) => !x.needsHuman)!;
+    const res = await raw(t.id, JSON.stringify({ decision: 'approved' }), { 'content-type': 'text/plain' });
+    expect(res.status).toBe(415);
+    expect(mailer.sent).toHaveLength(0);
+    expect(await getTestDb().select().from(reviews).where(eq(reviews.ticketId, t.id))).toHaveLength(0);
+  });
+  it('a cross-origin browser request is 403 and does nothing', async () => {
+    const t = (await listTickets(testDeps(), {})).find((x) => !x.needsHuman)!;
+    const res = await raw(t.id, JSON.stringify({ decision: 'approved' }), { origin: 'https://evil.example', host: 'localhost:3000' });
+    expect(res.status).toBe(403);
+    expect(mailer.sent).toHaveLength(0);
+  });
+  it('a same-origin browser request is allowed', async () => {
+    const t = (await listTickets(testDeps(), {})).find((x) => !x.needsHuman)!;
+    const res = await raw(t.id, JSON.stringify({ decision: 'approved' }), { origin: 'http://localhost:3000', host: 'localhost:3000' });
+    expect(res.status).toBe(200);
   });
 });

@@ -26,7 +26,7 @@ export function ReviewPanel({ ticketId, toEmail, initialBody, isPlaceholder, dis
   async function post(payload: object) {
     setBusy(true); setError(null);
     try {
-      const res = await fetch(`/api/tickets/${ticketId}/review`, { method: 'POST', body: JSON.stringify(payload) });
+      const res = await fetch(`/api/tickets/${ticketId}/review`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? 'Request failed'); dialog.current?.close(); return; }
       dialog.current?.close();

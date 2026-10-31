@@ -5,7 +5,7 @@ import { submitReview } from '@/services/review';
 import { sendApproved } from '@/services/send';
 import { DomainError } from '@/domain/errors';
 import { REVIEW_DECISIONS } from '@/domain/types';
-import { handleError, readJson } from '@/server/http';
+import { assertSameOrigin, handleError, readJson } from '@/server/http';
 
 // Strict: unknown fields (e.g. reviewer, tenantId) are rejected, so a client can never supply them.
 const Body = z.strictObject({
@@ -20,6 +20,7 @@ const DEMO_REVIEWER = 'demo-reviewer';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    assertSameOrigin(req);
     const { id } = await params;
     if (!z.string().uuid().safeParse(id).success) throw new DomainError('Ticket not found', 404);
     const parsed = Body.safeParse(await readJson(req));
